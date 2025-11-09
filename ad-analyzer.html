@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-LLM Ad Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        select, textarea, input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .file-upload-zone {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload-zone:hover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+        }
+
+        .file-upload-zone.dragover {
+            background: #e0e7ff;
+            border-color: #4c51bf;
+        }
+
+        .file-list {
+            margin-top: 15px;
+        }
+
+        .file-item {
+            background: white;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .file-item button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .file-item button:hover {
+            background: #c82333;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .results-container {
+            margin-top: 40px;
+        }
+
+        .ad-result {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+        }
+
+        .ad-result h3 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .ad-preview {
+            max-width: 300px;
+            max-height: 300px;
+            margin: 15px 0;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .response-box {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-left: 4px solid #667eea;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #c33;
+        }
+
+        .video-indicator {
+            color: #28a745;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .no-video-indicator {
+            color: #dc3545;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+
+        .info-box strong {
+            color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multi-LLM Ad Analyzer</h1>
+        <p class="subtitle">Analyze your ads using multiple AI models with your brand guidelines</p>
+
+        <div class="section">
+            <h2>1. Select AI Model</h2>
+            <div class="form-group">
+                <label for="model-select">Choose your AI model:</label>
+                <select id="model-select">
+                    <option value="gpt5">GPT-5 Thinking <span class="video-indicator">✓ Supports Video</span></option>
+                    <option value="claude">Claude Sonnet 4.5 (Images only)</option>
+                    <option value="gemini">Gemini 2.5 <span class="video-indicator">✓ Supports Video</span></option>
+                    <option value="grok">Grok 4 (Images only)</option>
+                </select>
+                <div class="info-box" id="model-info">
+                    <strong>GPT-5 Thinking:</strong> Supports both images and video files. Best for complex reasoning tasks.
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. Upload Brand Guidelines & Context</h2>
+            <div class="form-group">
+                <label>Brand Guidelines (PDF, TXT, DOCX):</label>
+                <div class="file-upload-zone" id="guidelines-zone">
+                    <p>📄 Click or drag files here</p>
+                    <input type="file" id="guidelines-input" multiple accept=".pdf,.txt,.docx,.md" style="display:none">
+                </div>
+                <div class="file-list" id="guidelines-list"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Additional Context Documents (Optional):</label>
+                <div class="file-upload-zone" id="context-zone">
+                    <p>📄 Click or drag files here</p>
+                    <input type="file" id="context-input" multiple accept=".pdf,.txt,.docx,.md" style="display:none">
+                </div>
+                <div class="file-list" id="context-list"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. Text Guidance</h2>
+            <div class="form-group">
+                <label for="text-guidance">Enter instructions for analyzing the ads:</label>
+                <textarea id="text-guidance" placeholder="Example: Analyze this ad for brand consistency, messaging clarity, visual appeal, and call-to-action effectiveness. Rate each aspect and provide specific recommendations."></textarea>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. Upload Ads</h2>
+            <div class="form-group">
+                <label>Upload Your Ads (Images or Videos):</label>
+                <div class="file-upload-zone" id="ads-zone">
+                    <p>🎬 Click or drag ad files here</p>
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">Supported: JPG, PNG, GIF, WebP, MP4, MOV</p>
+                    <input type="file" id="ads-input" multiple accept="image/*,video/*" style="display:none">
+                </div>
+                <div class="file-list" id="ads-list"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>5. API Configuration</h2>
+            <div class="form-group">
+                <label for="api-key">API Key:</label>
+                <input type="password" id="api-key" placeholder="Enter your API key for the selected model" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px;">
+                <p style="font-size: 12px; color: #666; margin-top: 5px;">Your API key is stored locally and never sent to any server except the selected AI provider.</p>
+            </div>
+        </div>
+
+        <button class="analyze-btn" id="analyze-btn">Analyze Ads</button>
+
+        <div class="results-container" id="results-container"></div>
+    </div>
+
+    <script>
+        // File storage
+        let guidelinesFiles = [];
+        let contextFiles = [];
+        let adFiles = [];
+
+        // Model information
+        const modelInfo = {
+            gpt5: {
+                name: 'GPT-5 Thinking',
+                videoSupport: true,
+                info: '<strong>GPT-5 Thinking:</strong> Supports both images and video files. Best for complex reasoning tasks with enhanced multimodal capabilities.'
+            },
+            claude: {
+                name: 'Claude Sonnet 4.5',
+                videoSupport: false,
+                info: '<strong>Claude Sonnet 4.5:</strong> Supports images only (JPG, PNG, GIF, WebP). Excellent for coding and complex analysis tasks.'
+            },
+            gemini: {
+                name: 'Gemini 2.5',
+                videoSupport: true,
+                info: '<strong>Gemini 2.5:</strong> Supports both images and video (up to 10 videos per request). Advanced multimodal understanding capabilities.'
+            },
+            grok: {
+                name: 'Grok 4',
+                videoSupport: false,
+                info: '<strong>Grok 4:</strong> Supports images only. Video support coming soon. Real-time search integration available.'
+            }
+        };
+
+        // Update model info when selection changes
+        document.getElementById('model-select').addEventListener('change', (e) => {
+            const modelInfoDiv = document.getElementById('model-info');
+            modelInfoDiv.innerHTML = modelInfo[e.target.value].info;
+        });
+
+        // File upload handlers
+        function setupFileUpload(zoneId, inputId, fileArray, listId) {
+            const zone = document.getElementById(zoneId);
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
+
+            zone.addEventListener('click', () => input.click());
+
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('dragover');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files, fileArray, listId);
+            });
+
+            input.addEventListener('change', (e) => {
+                handleFiles(e.target.files, fileArray, listId);
+            });
+        }
+
+        function handleFiles(files, fileArray, listId) {
+            for (let file of files) {
+                fileArray.push(file);
+            }
+            updateFileList(fileArray, listId);
+        }
+
+        function updateFileList(fileArray, listId) {
+            const list = document.getElementById(listId);
+            list.innerHTML = '';
+
+            fileArray.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+
+                const isVideo = file.type.startsWith('video/');
+                const icon = isVideo ? '🎬' : '📄';
+
+                item.innerHTML = `
+                    <span>${icon} ${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
+                    <button onclick="removeFile('${listId}', ${index})">Remove</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function removeFile(listId, index) {
+            if (listId === 'guidelines-list') {
+                guidelinesFiles.splice(index, 1);
+                updateFileList(guidelinesFiles, listId);
+            } else if (listId === 'context-list') {
+                contextFiles.splice(index, 1);
+                updateFileList(contextFiles, listId);
+            } else if (listId === 'ads-list') {
+                adFiles.splice(index, 1);
+                updateFileList(adFiles, listId);
+            }
+        }
+
+        // Setup all file uploads
+        setupFileUpload('guidelines-zone', 'guidelines-input', guidelinesFiles, 'guidelines-list');
+        setupFileUpload('context-zone', 'context-input', contextFiles, 'context-list');
+        setupFileUpload('ads-zone', 'ads-input', adFiles, 'ads-list');
+
+        // File to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Read text files
+        function fileToText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        // Analyze button handler
+        document.getElementById('analyze-btn').addEventListener('click', async () => {
+            const model = document.getElementById('model-select').value;
+            const apiKey = document.getElementById('api-key').value;
+            const textGuidance = document.getElementById('text-guidance').value;
+            const resultsContainer = document.getElementById('results-container');
+            const analyzeBtn = document.getElementById('analyze-btn');
+
+            // Validation
+            if (!apiKey) {
+                alert('Please enter your API key');
+                return;
+            }
+
+            if (adFiles.length === 0) {
+                alert('Please upload at least one ad');
+                return;
+            }
+
+            // Check for video files with incompatible models
+            const hasVideo = adFiles.some(f => f.type.startsWith('video/'));
+            if (hasVideo && !modelInfo[model].videoSupport) {
+                alert(`${modelInfo[model].name} does not support video files. Please select a different model or remove video files.`);
+                return;
+            }
+
+            // Disable button and show loading
+            analyzeBtn.disabled = true;
+            resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><p>Analyzing your ads...</p></div>';
+
+            try {
+                // Read brand guidelines and context
+                let brandContext = '';
+
+                for (let file of guidelinesFiles) {
+                    const text = await fileToText(file);
+                    brandContext += `\n\n--- Brand Guidelines from ${file.name} ---\n${text}`;
+                }
+
+                for (let file of contextFiles) {
+                    const text = await fileToText(file);
+                    brandContext += `\n\n--- Context from ${file.name} ---\n${text}`;
+                }
+
+                // Process each ad
+                const results = [];
+                for (let i = 0; i < adFiles.length; i++) {
+                    const ad = adFiles[i];
+                    try {
+                        const result = await analyzeAd(model, apiKey, ad, brandContext, textGuidance);
+                        results.push({
+                            file: ad,
+                            response: result,
+                            error: null
+                        });
+                    } catch (error) {
+                        results.push({
+                            file: ad,
+                            response: null,
+                            error: error.message
+                        });
+                    }
+                }
+
+                // Display results
+                displayResults(results);
+
+            } catch (error) {
+                resultsContainer.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                analyzeBtn.disabled = false;
+            }
+        });
+
+        // Analyze individual ad
+        async function analyzeAd(model, apiKey, adFile, brandContext, textGuidance) {
+            const isVideo = adFile.type.startsWith('video/');
+            const isImage = adFile.type.startsWith('image/');
+
+            // Build the prompt
+            const systemPrompt = `You are an expert ad analyzer. You will analyze ads based on provided brand guidelines and context.
+
+${brandContext}
+
+User Instructions:
+${textGuidance}
+
+Please provide a detailed analysis of the ad.`;
+
+            if (model === 'gpt5') {
+                return await analyzeWithGPT5(apiKey, systemPrompt, adFile, isVideo);
+            } else if (model === 'claude') {
+                return await analyzeWithClaude(apiKey, systemPrompt, adFile);
+            } else if (model === 'gemini') {
+                return await analyzeWithGemini(apiKey, systemPrompt, adFile, isVideo);
+            } else if (model === 'grok') {
+                return await analyzeWithGrok(apiKey, systemPrompt, adFile);
+            }
+        }
+
+        // GPT-5 API call
+        async function analyzeWithGPT5(apiKey, prompt, file, isVideo) {
+            const base64 = await fileToBase64(file);
+            const mediaType = isVideo ? 'video' : 'image';
+
+            const response = await fetch('/api/gpt5', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    apiKey: apiKey,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: prompt },
+                                {
+                                    type: mediaType === 'video' ? 'video' : 'image_url',
+                                    [mediaType === 'video' ? 'video' : 'image_url']: {
+                                        [mediaType === 'video' ? 'data' : 'url']: `data:${file.type};base64,${base64}`
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    reasoning_effort: 'medium'
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'GPT-5 API error');
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        // Claude API call
+        async function analyzeWithClaude(apiKey, prompt, file) {
+            const base64 = await fileToBase64(file);
+
+            const response = await fetch('/api/claude', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    apiKey: apiKey,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: prompt },
+                                {
+                                    type: 'image',
+                                    source: {
+                                        type: 'base64',
+                                        media_type: file.type,
+                                        data: base64
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'Claude API error');
+            }
+
+            const data = await response.json();
+            return data.content[0].text;
+        }
+
+        // Gemini API call
+        async function analyzeWithGemini(apiKey, prompt, file, isVideo) {
+            const base64 = await fileToBase64(file);
+
+            const parts = [
+                { text: prompt },
+                {
+                    inline_data: {
+                        mime_type: file.type,
+                        data: base64
+                    }
+                }
+            ];
+
+            const response = await fetch('/api/gemini', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    apiKey: apiKey,
+                    contents: [{
+                        parts: parts
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'Gemini API error');
+            }
+
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        // Grok API call
+        async function analyzeWithGrok(apiKey, prompt, file) {
+            const base64 = await fileToBase64(file);
+
+            const response = await fetch('/api/grok', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    apiKey: apiKey,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: prompt },
+                                {
+                                    type: 'image_url',
+                                    image_url: {
+                                        url: `data:${file.type};base64,${base64}`
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'Grok API error');
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        // Display results
+        function displayResults(results) {
+            const container = document.getElementById('results-container');
+            container.innerHTML = '<h2 style="margin-bottom: 20px; color: #333;">Analysis Results</h2>';
+
+            results.forEach((result, index) => {
+                const adResult = document.createElement('div');
+                adResult.className = 'ad-result';
+
+                const isVideo = result.file.type.startsWith('video/');
+
+                let previewHTML = '';
+                if (isVideo) {
+                    previewHTML = `<video class="ad-preview" controls><source src="${URL.createObjectURL(result.file)}" type="${result.file.type}"></video>`;
+                } else {
+                    previewHTML = `<img class="ad-preview" src="${URL.createObjectURL(result.file)}" alt="Ad ${index + 1}">`;
+                }
+
+                adResult.innerHTML = `
+                    <h3>Ad ${index + 1}: ${result.file.name}</h3>
+                    ${previewHTML}
+                    ${result.error
+                        ? `<div class="error">Error: ${result.error}</div>`
+                        : `<div class="response-box">${result.response}</div>`
+                    }
+                `;
+
+                container.appendChild(adResult);
+            });
+        }
+    </script>
+</body>
+</html>
