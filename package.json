@@ -1,0 +1,13 @@
+{
+  "name": "link-shuffler",
+  "version": "1.0.0",
+  "description": "Random link selector for web pages",
+  "main": "shuffle.js",
+  "scripts": {
+    "start": "npx http-server -p 8080 -o",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["shuffle", "random", "links"],
+  "author": "",
+  "license": "ISC"
+}
