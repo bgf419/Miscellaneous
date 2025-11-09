@@ -21,9 +21,10 @@ app.post('/api/gpt5', async (req, res) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'gpt-4o', // Using gpt-4o as it has stable vision support
+                model: 'gpt-5',
                 messages: messages,
-                max_tokens: 4096
+                max_tokens: 4096,
+                reasoning_effort: reasoning_effort || 'medium'
             })
         });
 

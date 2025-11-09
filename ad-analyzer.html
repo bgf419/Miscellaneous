@@ -261,7 +261,7 @@
             <div class="form-group">
                 <label for="model-select">Choose your AI model:</label>
                 <select id="model-select">
-                    <option value="gpt5">GPT-4o (OpenAI) - Supports Images & Video</option>
+                    <option value="gpt5">GPT-5 (OpenAI) - Supports Images & Video</option>
                     <option value="claude">Claude Sonnet 4.5 (Anthropic) - Images only</option>
                     <option value="gemini">Gemini 2.5 (Google) - Supports Images & Video</option>
                     <option value="grok">Grok 4 (xAI) - Images only</option>
@@ -337,9 +337,9 @@
         // Model information
         const modelInfo = {
             gpt5: {
-                name: 'GPT-4o',
+                name: 'GPT-5',
                 videoSupport: true,
-                info: '<strong>GPT-4o (OpenAI):</strong> Supports both images and video files. Multimodal vision capabilities with excellent reasoning.'
+                info: '<strong>GPT-5 (OpenAI):</strong> Supports both images and video files. Advanced reasoning with multimodal capabilities. Includes reasoning_effort parameter for enhanced analysis.'
             },
             claude: {
                 name: 'Claude Sonnet 4.5',
@@ -589,7 +589,7 @@ Please provide a detailed analysis of the ad.`;
             if (!response.ok) {
                 const error = await response.json();
                 const errorMsg = error.error?.message || JSON.stringify(error);
-                throw new Error(`GPT-4o API error: ${errorMsg}`);
+                throw new Error(`GPT-5 API error: ${errorMsg}`);
             }
 
             const data = await response.json();
