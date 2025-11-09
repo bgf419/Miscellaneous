@@ -21,21 +21,23 @@ app.post('/api/gpt5', async (req, res) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'gpt-5',
+                model: 'gpt-4o', // Using gpt-4o as it has stable vision support
                 messages: messages,
-                reasoning_effort: reasoning_effort || 'medium'
+                max_tokens: 4096
             })
         });
 
         const data = await response.json();
 
         if (!response.ok) {
+            console.error('GPT-5 API Error:', data);
             return res.status(response.status).json(data);
         }
 
         res.json(data);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('GPT-5 Server Error:', error);
+        res.status(500).json({ error: error.message, details: error.toString() });
     }
 });
 

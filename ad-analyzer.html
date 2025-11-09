@@ -261,10 +261,10 @@
             <div class="form-group">
                 <label for="model-select">Choose your AI model:</label>
                 <select id="model-select">
-                    <option value="gpt5">GPT-5 Thinking <span class="video-indicator">✓ Supports Video</span></option>
-                    <option value="claude">Claude Sonnet 4.5 (Images only)</option>
-                    <option value="gemini">Gemini 2.5 <span class="video-indicator">✓ Supports Video</span></option>
-                    <option value="grok">Grok 4 (Images only)</option>
+                    <option value="gpt5">GPT-4o (OpenAI) - Supports Images & Video</option>
+                    <option value="claude">Claude Sonnet 4.5 (Anthropic) - Images only</option>
+                    <option value="gemini">Gemini 2.5 (Google) - Supports Images & Video</option>
+                    <option value="grok">Grok 4 (xAI) - Images only</option>
                 </select>
                 <div class="info-box" id="model-info">
                     <strong>GPT-5 Thinking:</strong> Supports both images and video files. Best for complex reasoning tasks.
@@ -337,24 +337,24 @@
         // Model information
         const modelInfo = {
             gpt5: {
-                name: 'GPT-5 Thinking',
+                name: 'GPT-4o',
                 videoSupport: true,
-                info: '<strong>GPT-5 Thinking:</strong> Supports both images and video files. Best for complex reasoning tasks with enhanced multimodal capabilities.'
+                info: '<strong>GPT-4o (OpenAI):</strong> Supports both images and video files. Multimodal vision capabilities with excellent reasoning.'
             },
             claude: {
                 name: 'Claude Sonnet 4.5',
                 videoSupport: false,
-                info: '<strong>Claude Sonnet 4.5:</strong> Supports images only (JPG, PNG, GIF, WebP). Excellent for coding and complex analysis tasks.'
+                info: '<strong>Claude Sonnet 4.5 (Anthropic):</strong> Supports images only (JPG, PNG, GIF, WebP). Excellent for coding and complex analysis tasks.'
             },
             gemini: {
                 name: 'Gemini 2.5',
                 videoSupport: true,
-                info: '<strong>Gemini 2.5:</strong> Supports both images and video (up to 10 videos per request). Advanced multimodal understanding capabilities.'
+                info: '<strong>Gemini 2.5 (Google):</strong> Supports both images and video (up to 10 videos per request). Advanced multimodal understanding capabilities.'
             },
             grok: {
                 name: 'Grok 4',
                 videoSupport: false,
-                info: '<strong>Grok 4:</strong> Supports images only. Video support coming soon. Real-time search integration available.'
+                info: '<strong>Grok 4 (xAI):</strong> Supports images only. Video support coming soon. Real-time search integration available.'
             }
         };
 
@@ -588,7 +588,8 @@ Please provide a detailed analysis of the ad.`;
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error?.message || 'GPT-5 API error');
+                const errorMsg = error.error?.message || JSON.stringify(error);
+                throw new Error(`GPT-4o API error: ${errorMsg}`);
             }
 
             const data = await response.json();
@@ -627,7 +628,8 @@ Please provide a detailed analysis of the ad.`;
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error?.message || 'Claude API error');
+                const errorMsg = error.error?.message || JSON.stringify(error);
+                throw new Error(`Claude API error: ${errorMsg}`);
             }
 
             const data = await response.json();
@@ -663,7 +665,8 @@ Please provide a detailed analysis of the ad.`;
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error?.message || 'Gemini API error');
+                const errorMsg = error.error?.message || JSON.stringify(error);
+                throw new Error(`Gemini API error: ${errorMsg}`);
             }
 
             const data = await response.json();
@@ -700,7 +703,8 @@ Please provide a detailed analysis of the ad.`;
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error?.message || 'Grok API error');
+                const errorMsg = error.error?.message || JSON.stringify(error);
+                throw new Error(`Grok API error: ${errorMsg}`);
             }
 
             const data = await response.json();
